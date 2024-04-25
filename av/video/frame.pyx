@@ -145,6 +145,9 @@ cdef class VideoFrame(Frame):
         if self.format.name == "pal8":
             max_plane_count = 2
 
+        # add 4 motion vector planes
+        max_plane_count += 4
+
         cdef int plane_count = 0
         while plane_count < max_plane_count and self.ptr.extended_data[plane_count]:
             plane_count += 1
@@ -362,6 +365,16 @@ cdef class VideoFrame(Frame):
             raise ValueError(
                 f"Conversion to numpy array with format `{frame.format.name}` is not yet supported"
             )
+
+    def get_motion_vector_frames(self, **kwargs):
+        import numpy as np
+
+        return np.hstack((
+            useful_array(self.planes[3], bytes_per_pixel=2, dtype="int16"),
+            useful_array(self.planes[4], bytes_per_pixel=2, dtype="int16"),
+            useful_array(self.planes[5], bytes_per_pixel=2, dtype="int16"),
+            useful_array(self.planes[6], bytes_per_pixel=2, dtype="int16"),
+        )).reshape(-1, self.height, self.width)
 
     @staticmethod
     def from_image(img):

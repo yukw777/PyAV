@@ -10,14 +10,21 @@ cdef class VideoPlane(Plane):
             self.buffer_size = 256 * 4
             return
 
-        for i in range(frame.format.ptr.nb_components):
-            if frame.format.ptr.comp[i].plane == index:
-                component = frame.format.components[i]
-                self.width = component.width
-                self.height = component.height
-                break
+        nb_components = frame.format.ptr.nb_components
+        if index >= nb_components and index < nb_components + 4:
+            # motion vector planes
+            component = frame.format.components[0]
+            self.width = component.width
+            self.height = component.height
         else:
-            raise RuntimeError(f"could not find plane {index} of {frame.format!r}")
+            for i in range(frame.format.ptr.nb_components):
+                if frame.format.ptr.comp[i].plane == index:
+                    component = frame.format.components[i]
+                    self.width = component.width
+                    self.height = component.height
+                    break
+            else:
+                raise RuntimeError(f"could not find plane {index} of {frame.format!r}")
 
         # Sometimes, linesize is negative (and that is meaningful). We are only
         # insisting that the buffer size be based on the extent of linesize, and
