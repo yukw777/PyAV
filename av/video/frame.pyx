@@ -145,8 +145,8 @@ cdef class VideoFrame(Frame):
         if self.format.name == "pal8":
             max_plane_count = 2
 
-        # add 4 motion vector planes
-        max_plane_count += 4
+        # add 2 motion vector planes
+        max_plane_count += 2
 
         cdef int plane_count = 0
         while plane_count < max_plane_count and self.ptr.extended_data[plane_count]:
@@ -369,12 +369,12 @@ cdef class VideoFrame(Frame):
     def get_motion_vector_frames(self, **kwargs):
         import numpy as np
 
-        return np.hstack((
-            useful_array(self.planes[3], bytes_per_pixel=2, dtype="int16"),
-            useful_array(self.planes[4], bytes_per_pixel=2, dtype="int16"),
-            useful_array(self.planes[5], bytes_per_pixel=2, dtype="int16"),
-            useful_array(self.planes[6], bytes_per_pixel=2, dtype="int16"),
-        )).reshape(-1, self.height, self.width)
+        mv_height = self.planes[3].height
+        mv_width = self.planes[3].width
+        return np.stack((
+            useful_array(self.planes[3], bytes_per_pixel=4, dtype="int16"),
+            useful_array(self.planes[4], bytes_per_pixel=4, dtype="int16"),
+        )).reshape(-1, mv_height, mv_width, 2)
 
     @staticmethod
     def from_image(img):

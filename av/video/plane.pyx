@@ -14,8 +14,8 @@ cdef class VideoPlane(Plane):
         if index >= nb_components and index < nb_components + 4:
             # motion vector planes
             component = frame.format.components[0]
-            self.width = component.width
-            self.height = component.height
+            self.width = component.width // 4
+            self.height = component.height // 4
         else:
             for i in range(frame.format.ptr.nb_components):
                 if frame.format.ptr.comp[i].plane == index:
